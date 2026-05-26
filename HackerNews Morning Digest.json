@@ -1,0 +1,266 @@
+{
+  "name": "HackerNews Morning Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cdfe27c0-1dc5-42bf-8935-4d1b8a132376",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://hacker-news.firebaseio.com/v0/topstories.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0ba16343-082f-4418-80e3-5b4079fb0e7e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Top 5 HackerNews story IDs lo\nconst items = $input.all();\nconst top5Ids = items.slice(0, 5);\n\nreturn top5Ids.map(item => ({\n  json: {\n    storyId: item.json\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "34da295f-ccb9-4f16-b49e-db245d191ffd",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://hacker-news.firebaseio.com/v0/item/{{$json.storyId}}.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "776ee378-7ef2-4d87-94a4-e92586248e8a",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e0bdeec3-a2d7-4ade-b8b7-9738f20e9bb6",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "d9d1480d-2ce1-42cc-b3ab-46301a2ea1c5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "naveenmishra99190@gmail.com",
+        "subject": "🔥 HackerNews Hot Stories Digest",
+        "message": "=<h2>🔥 Top HackerNews Hot Stories</h2> <p><b>Title:</b> {{$json.title}}</p> <p><b>Score:</b> {{$json.score}}</p> <p><b>Author:</b> {{$json.by}}</p> <p><b>Comments:</b> {{$json.descendants}}</p> <p><b>Link:</b> <a href=\"{{$json.url}}\">Read More</a></p> <hr>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "94774872-5cfb-4ee5-9c42-12cb6f2b3288",
+      "name": "Send a message",
+      "webhookId": "8a3d92b1-373b-485c-a5f6-03e9f727887e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "arm8fXR0pLWSwdXB",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "naveenmishra99190@gmail.com",
+        "subject": "📰 HackerNews Regular Stories Digest",
+        "message": "=<h2>📰 Regular HackerNews Stories</h2> <p><b>Title:</b> {{$json.title}}</p> <p><b>Score:</b> {{$json.score}}</p> <p><b>Author:</b> {{$json.by}}</p> <p><b>Link:</b> <a href=\"{{$json.url}}\">Read More</a></p> <hr>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        96
+      ],
+      "id": "c5abd2dc-25af-4063-a0bf-93240aa97084",
+      "name": "Send a message1",
+      "webhookId": "9d347a37-01e7-46c5-a3db-bd508da0b0f5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "arm8fXR0pLWSwdXB",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        288,
+        256
+      ],
+      "id": "2218cf30-d457-41e0-ac22-877a50a0c2cd",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "sendTo": "naveenmishra99190@gmail.com",
+        "subject": "⚠️ Workflow Error Alert",
+        "message": "=<h2>⚠️ Workflow Error!</h2> <p><b>Error:</b> {{$json.error.message}}</p> <p><b>Workflow:</b> {{$json.workflow.name}}</p> <p>Please check your n8n workflow immediately.</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        256
+      ],
+      "id": "15bd87d3-184a-4e6b-8422-17e72daa0949",
+      "name": "Send a message2",
+      "webhookId": "d514f59d-c5f3-4c0f-b7d2-1ee78ad244ed",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "arm8fXR0pLWSwdXB",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "353f3072-6190-4e3c-8d0c-73f75d627d0d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4240828061a284ce3021e95f6dde2d6ae93c3bcd460147ab3f92154700b2705c"
+  },
+  "id": "xFrBc61rZoKuLULz",
+  "tags": []
+}
